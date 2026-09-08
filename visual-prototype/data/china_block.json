@@ -1,0 +1,17 @@
+{
+  "map_size": [240,220],
+  "roads": {"main_z":75,"secondary_z":-88,"east_x":97,"alley_z":30,"court_z":10,"court_spine_x":22},
+  "buildings": [
+    {"id":"B01","name":"邻里便利店","kind":"store","position":[-75,48],"size":[16,18],"floors":1,"color":"green","front":"normal","rear":"normal"},
+    {"id":"B02","name":"社区卫生服务站","kind":"clinic","position":[-43,47],"size":[24,20],"floors":2,"color":"cream","front":"normal","rear":"normal"},
+    {"id":"B03","name":"五金修理铺","kind":"hardware","position":[-15,48],"size":[16,18],"floors":1,"color":"blue","front":"locked","rear":"normal"},
+    {"id":"B04","name":"巷口早餐店","kind":"cafe","position":[10,48],"size":[16,18],"floors":1,"color":"red","front":"blocked","rear":"normal"},
+    {"id":"B05","name":"青禾小区 1 栋","kind":"residential","position":[-65,-13],"size":[32,18],"floors":6,"color":"cream","front":"normal","rear":"locked"},
+    {"id":"B06","name":"青禾小区 2 栋","kind":"residential","position":[-62,-57],"size":[30,18],"floors":5,"color":"walk","front":"damaged","rear":"normal"},
+    {"id":"B07","name":"青禾小区 3 栋","kind":"tower","position":[51,-48],"size":[24,24],"floors":11,"color":"blue","front":"normal","rear":"blocked"},
+    {"id":"B08","name":"社区活动与物业","kind":"community","position":[-5,-20],"size":[22,20],"floors":2,"color":"cream","front":"normal","rear":"normal"},
+    {"id":"B09","name":"便民菜店","kind":"market","position":[65,43],"size":[20,20],"floors":1,"color":"green","front":"normal","rear":"normal"},
+    {"id":"B10","name":"邻里快递驿站","kind":"depot","position":[64,2],"size":[22,20],"floors":1,"color":"red","front":"normal","rear":"normal"}
+  ],
+  "task": {"home_building":"B01","home_local":[4,3],"spawn_local":[0,3],"medicine_building":"B02","medicine_local":[-7,-5],"water_local":[-5,-5],"food_local":[5,-5]}
+}

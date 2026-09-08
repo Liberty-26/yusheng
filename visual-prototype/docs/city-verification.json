@@ -1,0 +1,91 @@
+{
+  "actual_walking": true,
+  "automated_replay_time_scale": 4,
+  "buildings": [
+    {
+      "building": "B01",
+      "entry": "B01_rear",
+      "name": "邻里便利店",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B02",
+      "entry": "B02_rear",
+      "name": "社区卫生服务站",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B03",
+      "entry": "B03_rear",
+      "name": "五金修理铺",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B04",
+      "entry": "B04_rear",
+      "name": "巷口早餐店",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B05",
+      "entry": "B05_front",
+      "name": "青禾小区 1 栋",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B06",
+      "entry": "B06_rear",
+      "name": "青禾小区 2 栋",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B07",
+      "entry": "B07_front",
+      "name": "青禾小区 3 栋",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B08",
+      "entry": "B08_rear",
+      "name": "社区活动与物业",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B09",
+      "entry": "B09_rear",
+      "name": "便民菜店",
+      "spawn_to_room_and_back": true
+    },
+    {
+      "building": "B10",
+      "entry": "B10_rear",
+      "name": "邻里快递驿站",
+      "spawn_to_room_and_back": true
+    }
+  ],
+  "captures": [
+    "inside-B01.png",
+    "inside-B02.png",
+    "inside-B05.png",
+    "inside-B07.png",
+    "door-normal.png",
+    "door-locked.png",
+    "door-blocked.png",
+    "door-damaged.png",
+    "overview-00.png",
+    "overview-04.png",
+    "overview-08.png",
+    "overview-12.png",
+    "pitch-25.png",
+    "pitch-75.png",
+    "occlusion-tower.png",
+    "road-crossing.png"
+  ],
+  "door_states": [
+    "normal",
+    "locked",
+    "blocked",
+    "damaged"
+  ],
+  "medicine_delivered": true
+}

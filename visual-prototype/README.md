@@ -1,10 +1,10 @@
-# ASH DISTRICT / 末日街区地图原型
+# 余生 / 中国城市街区原型
 
-独立 Godot 4.x 3D 工程。180 × 180 m；固定正交斜俯视镜头，水平 45°、俯角约 43°。只验证地图、基础美术、镜头、建筑剖切。没有人物或游戏系统，没有连接 Python。
+独立 Godot 4.x 3D 工程。当前主场景为约 240 × 220 m 的中国城市街区灰盒，验证地图、基础美术、镜头、建筑剖切和最小可达性。没有 Agent、NPC、战斗或 Python 后端；试玩路线中的胶囊只用于比例与路线验证，不是正式角色资产。
 
 ## 直接运行
 
-双击同目录 `启动地图.command`，或在 Godot 导入 `project.godot` 后按 F6/F5（主场景运行用 F5）。Main Scene：`scenes/map/main.tscn`。
+双击同目录 `启动地图.command`，或在 Godot 导入 `project.godot` 后按 F5。当前 Main Scene：`scenes/map/slice.tscn`；旧的 `scenes/map/main.tscn` 仍保留作纯地图观察场景。
 
 ## 操作
 
@@ -66,6 +66,20 @@
 
 新实现：`scripts/exploration_camera.gd`、`scripts/occlusion_fader.gd`；`scripts/slice.gd` 接入两组件。验收入口：启动试玩场景并带 `-- --camera-test`，执行 `scripts/camera_verification.gd`。日志保存为 `verification-camera.log`；`screenshots/camera/` 包含两圈旋转的 16 张连续采样、近远缩放和三处遮挡截图，`sequence.json` 记录真实相机角度与淡化数量。连续截图是自动输入驱动的实机证据，不是手动游玩视频。
 
-下一轮地图提案见 `docs/中国街区重构方案.md`。当前地图仍是旧占位街区，尚未实现提案里的 10 栋可进入建筑。
+地图重构方案见 `docs/中国街区重构方案.md`。
 
-限制：当前用 Mesh 包围盒作为遮挡检测体，适合现有基础几何；未来 GLB 复杂模型应提供精简检测体并显式登记。一个完整屋顶 Mesh 被命中时会整片淡化，不能局部挖洞；正式资产需按屋面/墙段拆分。多层透明表面的排序仍受 Compatibility 渲染器限制。门保持可辨，因此紧贴关闭门扇时仍可能被门局部遮住。此轮没有实现全部建筑可进入或多楼层行走。
+限制：当前用 Mesh 包围盒作为遮挡检测体，适合现有基础几何；未来 GLB 复杂模型应提供精简检测体并显式登记。一个完整屋顶 Mesh 被命中时会整片淡化，不能局部挖洞；正式资产需按屋面/墙段拆分。多层透明表面的排序仍受 Compatibility 渲染器限制。门保持可辨，因此紧贴关闭门扇时仍可能被门局部遮住。
+
+## 2026-09-09 中国街区地图原型
+
+试玩场景 `scenes/map/slice.tscn` 已切换为独立的 `data/china_block.json` 城市街区：约 240 × 220 m，包含主街、次干路、支路、两条巷道、社区内院及 10 栋可进入建筑（便利店、卫生服务站、修理铺、早餐店、3 栋住宅、社区活动与物业、菜店、快递驿站）。建筑与道路由 `scripts/china_district.gd` 按模块化节点组装；每栋建筑保留 `building_id`、`floor_id`、`room_id`、`entry_id` 和 `interaction_point` 元数据，便于未来替换 Blender → GLB 资产。
+
+试玩场景支持右键拖动连续水平旋转、垂直俯仰 25°–75°、滚轮缩放、Home 复位和 WASD 镜头相对移动。10 栋建筑均有实际首层进出路径；门状态覆盖 normal / locked / blocked / damaged。住宅高层目前作为外部背景壳体，只有首层作为本轮可进入验证范围。
+
+图形回归入口：
+
+```text
+/Applications/Godot.app/Contents/MacOS/Godot --path . res://scenes/map/slice.tscn -- --city-test
+```
+
+验证结果写入 `docs/city-verification.json`，图形运行日志见 `verification-city.log`，截图见 `screenshots/china/`。这版仍是灰盒与基础材质原型，目的是判断构图、比例、冷环境 + 暖局部光源和建筑剖切是否成立；尚未引入正式 Blender 模型、Agent、战斗、库存、任务或 Python 后端。

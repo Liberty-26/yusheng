@@ -2,6 +2,10 @@ extends Node
 ## Orthographic orbit; input and walking share the rendered yaw, not the target yaw.
 const DEFAULT_YAW := PI/4.0
 const PITCH := deg_to_rad(43.0)
+const MIN_PITCH := deg_to_rad(25.0)
+const MAX_PITCH := deg_to_rad(75.0)
+var pitch := PITCH
+var target_pitch := PITCH
 const DEFAULT_ZOOM := 43.0
 const MIN_ZOOM := 18.0
 const MAX_ZOOM := 200.0
@@ -27,21 +31,25 @@ func handle_input(event: InputEvent):
 			target_zoom=clampf(target_zoom/0.86,MIN_ZOOM,MAX_ZOOM)
 	if event is InputEventMouseMotion and orbiting:
 		target_yaw-=event.relative.x*DRAG_SENSITIVITY
+		target_pitch=clampf(target_pitch+event.relative.y*0.004,MIN_PITCH,MAX_PITCH)
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_HOME:
 		# Restore using the shortest arc even after several full rotations.
 		target_yaw=yaw+wrapf(DEFAULT_YAW-yaw,-PI,PI)
 		target_zoom=DEFAULT_ZOOM
+		target_pitch=PITCH
 
 func tick(delta: float, focus: Vector3):
 	var weight=1.0-exp(-12.0*delta)
 	yaw=lerpf(yaw,target_yaw,weight)
-	zoom=lerpf(zoom,target_zoom,weight)
+	pitch=lerpf(pitch,target_pitch,weight)
+	# Low pitch cannot zoom so far out that the ground footprint becomes unbounded.
+	zoom=lerpf(zoom,minf(target_zoom,260.0*sin(pitch)),weight)
 	apply(focus)
 
 func apply(focus: Vector3):
 	if view==null: return
 	view.size=zoom
-	view.position=focus+Vector3(sin(yaw)*200.0,tan(PITCH)*200.0,cos(yaw)*200.0)
+	view.position=focus+Vector3(sin(yaw)*cos(pitch),sin(pitch),cos(yaw)*cos(pitch))*320.0
 	view.look_at(focus)
 
 func ground_direction() -> Vector3:

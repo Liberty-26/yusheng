@@ -1,7 +1,7 @@
 config_version=5
 [application]
-config/name="ASH DISTRICT — Architectural Study"
-run/main_scene="res://scenes/map/main.tscn"
+config/name="余生"
+run/main_scene="res://scenes/map/slice.tscn"
 [display]
 window/size/viewport_width=1440
 window/size/viewport_height=1000

@@ -8,6 +8,7 @@ var view: Camera3D
 var surfaces: Array = []
 var body_to_index: Dictionary = {}
 var last_blocked: Dictionary = {}
+var enabled := true
 
 func setup(root: Node3D, player: Node3D, camera: Camera3D):
 	world=root; actor=player; view=camera
@@ -21,7 +22,7 @@ func collect(node: Node):
 	var path=str(mesh.get_path())
 	var title=str(mesh.name)
 	if not mesh.material_override is StandardMaterial3D: return
-	var architecture='/Roof/' in path or '/FarWalls/' in path or '/NearWalls/' in path or '/Floor2/' in path
+	var architecture=bool(mesh.get_meta('occluder',false)) or '/Roof/' in path or '/FarWalls/' in path or '/NearWalls/' in path or '/Floor2/' in path
 	var large_prop=title in ['Canopy','Cabin','Body','Partition','Shelf','ShelfBase'] or mesh.mesh is SphereMesh
 	if not architecture and not large_prop: return
 	if title in ['Door','UpperWindow','DoorLeaf','DoorHandle'] or 'Door' in title: return
@@ -45,6 +46,7 @@ func collect(node: Node):
 	surfaces.append({'mesh':mesh,'original':original,'faded':faded,'alpha':1.0,'hold':0.0,'shadow':mesh.cast_shadow})
 
 func tick(delta: float):
+	if not enabled: return
 	if not is_instance_valid(actor): return
 	var blocked: Dictionary = {}
 	# Parallel orthographic rays cover the body silhouette, not just its centre.
