@@ -1,0 +1,128 @@
+[
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-00.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 87.962720342354
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-01.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 132.692876253924
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-02.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 177.811467513141
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-03.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -137.22622178148
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-04.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -92.2514108338939
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-05.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -47.3063968321802
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-06.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -2.14145797371762
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-07.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 42.6923287210476
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-08.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 87.8222342710818
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-09.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 132.659147375039
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-10.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 177.844135044114
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-11.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -137.204701690041
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-12.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -92.1946343330781
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-13.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -47.3272935193215
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-14.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": -2.17345677548465
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "orbit-15.png",
+    "orthographic_size": 43.0,
+    "rendered_yaw_degrees": 42.7477382724392
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "zoom-near.png",
+    "orthographic_size": 18.0016899108887,
+    "rendered_yaw_degrees": 44.9999690900923
+  },
+  {
+    "faded_surfaces": 0,
+    "image": "zoom-district.png",
+    "orthographic_size": 199.996627807617,
+    "rendered_yaw_degrees": 44.9999690900923
+  },
+  {
+    "faded_surfaces": 3,
+    "image": "store-exterior.png",
+    "orthographic_size": 44.4919548034668,
+    "rendered_yaw_degrees": 6.05001349629532
+  },
+  {
+    "faded_surfaces": 1,
+    "image": "store-interior.png",
+    "orthographic_size": 44.4919853210449,
+    "rendered_yaw_degrees": -145.974819705719
+  },
+  {
+    "faded_surfaces": 1,
+    "image": "clinic-wall.png",
+    "orthographic_size": 44.4919853210449,
+    "rendered_yaw_degrees": -110.571299813905
+  }
+]

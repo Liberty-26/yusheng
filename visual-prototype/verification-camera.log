@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple A18 Pro
+
+CAMERA_ROTATION_VERIFIED actual revolutions degrees=719.999493077514
+CAMERA_ZOOM_HOME_VERIFIED projected scale ratio=11.1098953700023
+CAMERA_MOVEMENT_VERIFIED heading=89.9949966132381 displacement=(-1.29375, 0.0, -0.000794)
+CAMERA_MOVEMENT_VERIFIED heading=134.995264602149 displacement=(-0.915406, 0.0, 0.914233)
+CAMERA_MOVEMENT_VERIFIED heading=179.99496922418 displacement=(-0.00088, 0.0, 1.293747)
+CAMERA_MOVEMENT_VERIFIED heading=-135.005032132963 displacement=(0.914196, 0.0, 0.915442)
+CAMERA_MOVEMENT_VERIFIED heading=-90.0050343958205 displacement=(1.29375, 0.0, 0.000881)
+CAMERA_MOVEMENT_VERIFIED heading=-45.0050383149442 displacement=(0.915442, 0.0, -0.914196)
+CAMERA_MOVEMENT_VERIFIED heading=-0.00460679183052 displacement=(0.000898, 0.0, -1.379997)
+CAMERA_MOVEMENT_VERIFIED heading=44.9952398742232 displacement=(-0.975151, 0.0, -0.976464)
+CAMERA_EIGHT_WASD_COMBINATIONS_VERIFIED at arbitrary angle
+OCCLUSION_RESTORE_VERIFIED store-exterior count=3
+OCCLUSION_RESTORE_VERIFIED store-interior count=1
+OCCLUSION_RESTORE_VERIFIED clinic-wall count=1
+CAMERA_COLLISION_AND_MATERIALS_VERIFIED count=46
+MEASURED_SPEED 5.17500257492065
+MEASURED_SPEED 9.19999504089355
+DOOR_VERIFIED 便利店前门
+DOOR_VERIFIED 诊所前门
+DOOR_VERIFIED 便利店后门
+INTERIOR_VERIFIED ConvenienceStore four boundaries, visible doors
+INTERIOR_VERIFIED Clinic four boundaries, visible doors
+POLISH_VERIFIED: measured walk/sprint +15%, three doors, both interiors, full bag prompt
+ROUTE_VERIFIED: walked from store through both doors to clinic, held E to search, walked home, E delivered. Simulated seconds: 54.3666666666649

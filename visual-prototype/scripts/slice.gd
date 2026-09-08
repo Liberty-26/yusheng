@@ -4,6 +4,8 @@ const WALK_SPEED := 5.175
 const SPRINT_SPEED := 9.2
 const DEHYDRATED_SPEED := 2.5
 
+var orbit = preload("res://scripts/exploration_camera.gd").new()
+var occlusion = preload("res://scripts/occlusion_fader.gd").new()
 var player: CharacterBody3D
 var hud: Label
 var prompt: Label
@@ -22,7 +24,7 @@ var home = Vector3(-28,1,-19.5)
 
 func _ready():
 	super._ready()
-	set_process(false)
+	set_process(true)
 	set_process_unhandled_input(false)
 	# Selection volumes stay on a separate layer; visible walls own walking collision.
 	for id in ['ConvenienceStore','Clinic','TwoStoreyHouse','AbandonedHouse','Warehouse']:
@@ -63,21 +65,27 @@ func _ready():
 	add_child(ui)
 	var panel = ColorRect.new()
 	panel.color = Color(0.07,0.10,0.12,0.91)
-	panel.position = Vector2(20,20)
-	panel.size = Vector2(770,180)
+	panel.position = Vector2(14,12)
+	panel.size = Vector2(670,112)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(panel)
 	hud = Label.new()
-	hud.position = Vector2(36,28)
-	hud.add_theme_font_size_override('font_size',20)
+	hud.position = Vector2(24,18)
+	hud.add_theme_font_size_override('font_size',15)
 	ui.add_child(hud)
 	prompt = Label.new()
-	prompt.position = Vector2(36,214)
-	prompt.add_theme_font_size_override('font_size',22)
+	prompt.position = Vector2(24,132)
+	prompt.add_theme_font_size_override('font_size',17)
 	ui.add_child(prompt)
-	camera.size = 43
+	add_child(orbit)
+	orbit.setup(camera)
+	add_child(occlusion)
+	occlusion.setup(self,player,camera)
+	orbit.apply(player.position+Vector3.UP)
 	apply_interior(store,true)
 	set_physics_process(true)
+	if '--camera-test' in OS.get_cmdline_user_args():
+		call_deferred('verify_camera_stage')
 	if '--polish-test' in OS.get_cmdline_user_args():
 		call_deferred('verify_polish')
 	if '--route-test' in OS.get_cmdline_user_args():
@@ -194,10 +202,7 @@ func _physics_process(delta):
 		thirst = maxf(0,thirst-delta*0.08)
 	var direction = Vector3.ZERO
 	if not finished:
-		if Input.is_physical_key_pressed(KEY_W): direction+=Vector3(-1,0,-1)
-		if Input.is_physical_key_pressed(KEY_S): direction+=Vector3(1,0,1)
-		if Input.is_physical_key_pressed(KEY_A): direction+=Vector3(-1,0,1)
-		if Input.is_physical_key_pressed(KEY_D): direction+=Vector3(1,0,-1)
+		direction=orbit.ground_direction()
 	if route_move!=Vector3.ZERO: direction=route_move
 	var sprint = Input.is_physical_key_pressed(KEY_SHIFT) and stamina>1 and direction.length()>0 and thirst>0
 	stamina = clampf(stamina+delta*(-15 if sprint else 9),0,100)
@@ -212,6 +217,7 @@ func _physics_process(delta):
 	apply_interior(store,absf(p.x+39)<21 and absf(p.z+29)<17)
 	var inside_clinic = absf(p.x+72)<15 and absf(p.z-38)<16
 	apply_interior(get_node('Clinic'),inside_clinic)
+	occlusion.tick(delta)
 	var target = nearest()
 	if not finished and Input.is_physical_key_pressed(KEY_E) and target!=null and target.has('item') and direction==Vector3.ZERO and bag_total()<6:
 		if search_target!=target: search_time=0; search_target=target
@@ -229,7 +235,7 @@ func _physics_process(delta):
 	var bearing = ('右' if screen_direction.x>0 else '左')+('下' if screen_direction.y>0 else '上')
 	if not finished: task += '  |  目标：'+bearing+'方 %dm'%int(player.position.distance_to(destination))
 	if finished: task='完成：药品已带回安全点。按 R 重新试玩。'
-	hud.text='余生 / 首个搜刮循环\n'+task+'\n背包 %d/6  水 %d瓶 · 食物 %d份 · 药品 %d盒  |  用时 %02d:%02d\n体力 %d  水分 %d  |  WASD 移动 · Shift 跑 · E 交互/按住搜刮\nQ 喝水 · F 吃东西 · 滚轮缩放 · R 重开' % [bag['水']+bag['食物']+bag['药品'],bag['水'],bag['食物'],bag['药品'],int(elapsed)/60,int(elapsed)%60,int(stamina),int(thirst)]
+	hud.text='余生  |  '+task+'\n背包 %d/6  水 %d · 食物 %d · 药品 %d  |  %02d:%02d  |  体力 %d · 水分 %d\nWASD 移动 · Shift 跑 · E 开门/按住搜刮 · Q 喝水 · F 吃东西\n右键拖动旋转 · 滚轮缩放 · Home 复位 · R 重开' % [bag['水']+bag['食物']+bag['药品'],bag['水'],bag['食物'],bag['药品'],int(elapsed)/60,int(elapsed)%60,int(stamina),int(thirst)]
 	prompt.text=notice
 	if not finished and target!=null:
 		prompt.text=('E '+('关门：' if target.open else '开门：')+target.label) if target.has('open') else ('按住 E 搜索 '+target.label+'  %.1f / 2 秒'%search_time)
@@ -239,9 +245,7 @@ func _physics_process(delta):
 
 func _input(event):
 	if player==null: return
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index==MOUSE_BUTTON_WHEEL_UP: camera.size=clampf(camera.size*0.9,25,80)
-		if event.button_index==MOUSE_BUTTON_WHEEL_DOWN: camera.size=clampf(camera.size/0.9,25,80)
+	orbit.handle_input(event)
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode==KEY_R: get_tree().reload_current_scene()
 		if finished: return
@@ -387,14 +391,14 @@ func verify_polish():
 		assert(b.get_node('Floor1/InteriorBoundary/East').is_visible_in_tree())
 		for d in doors:
 			assert(d.leaf.is_visible_in_tree(),'Door leaf independent of cutaway')
-		camera.size=48
+		orbit.target_zoom=48
 		await get_tree().create_timer(0.4).timeout
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png('res://screenshots/'+('08-store-cutaway' if id=='ConvenienceStore' else '09-clinic-cutaway')+'.png')
 		print('INTERIOR_VERIFIED ',id,' four boundaries, visible doors')
 	player.position=Vector3(-39,1,-19)
 	toggle_door(doors[0])
-	camera.size=30
+	orbit.target_zoom=30
 	await get_tree().create_timer(0.4).timeout
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png('res://screenshots/10-store-door-open.png')
@@ -409,3 +413,17 @@ func verify_polish():
 	stamina=100; thirst=100; elapsed=0
 	print('POLISH_VERIFIED: measured walk/sprint +15%, three doors, both interiors, full bag prompt')
 	await verify_route()
+
+func _process(delta):
+	if player==null: return
+	orbit.tick(delta,player.position+Vector3.UP)
+
+func update_camera():
+	# Base ready calls this before the playable camera has been attached.
+	if orbit.view==null:
+		super.update_camera()
+	else:
+		orbit.apply(focus)
+
+func verify_camera_stage():
+	await preload("res://scripts/camera_verification.gd").new().run(self)
