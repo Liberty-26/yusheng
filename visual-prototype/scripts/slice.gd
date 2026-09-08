@@ -1,5 +1,9 @@
 extends "res://scripts/district.gd"
 
+const WALK_SPEED := 5.175
+const SPRINT_SPEED := 9.2
+const DEHYDRATED_SPEED := 2.5
+
 var player: CharacterBody3D
 var hud: Label
 var prompt: Label
@@ -30,6 +34,7 @@ func _ready():
 	var back = store.get_node('Floor1/Rooms/Storage/BackDoorMarker')
 	add_solid(back)
 	doors.append({"mesh":back,"open":false,"label":"便利店后门"})
+	prepare_interior_views()
 	player = CharacterBody3D.new()
 	player.name = 'Survivor'
 	player.collision_layer = 4
@@ -71,8 +76,10 @@ func _ready():
 	prompt.add_theme_font_size_override('font_size',22)
 	ui.add_child(prompt)
 	camera.size = 43
-	set_store(1)
+	apply_interior(store,true)
 	set_physics_process(true)
+	if '--polish-test' in OS.get_cmdline_user_args():
+		call_deferred('verify_polish')
 	if '--route-test' in OS.get_cmdline_user_args():
 		call_deferred('verify_route')
 	if '--slice-capture' in OS.get_cmdline_user_args():
@@ -114,17 +121,60 @@ func reachable(pos: Vector3, reach := 3.2) -> bool:
 	return hit.is_empty() or hit.position.distance_to(end)<1.1
 
 func nearest():
-	for d in doors:
-		if reachable(d.mesh.global_position): return d
-	for c in containers:
-		if c.amount>0 and reachable(c.mesh.global_position): return c
-	return null
+	var best = null
+	var distance := INF
+	for candidate in doors+containers:
+		if candidate.has('amount') and candidate.amount<=0: continue
+		var point = candidate.mesh.global_position
+		var candidate_distance = player.position.distance_to(Vector3(point.x,1,point.z))
+		if candidate_distance < distance and reachable(point):
+			best = candidate
+			distance = candidate_distance
+	return best
 
 func toggle_door(d):
 	d.open = not d.open
-	d.mesh.visible = not d.open
+	# Only the visual leaf swings. The original collider remains at the doorway.
+	d.hinge.rotation.y = -PI/2 if d.open else 0.0
 	d.mesh.get_node('WalkBody').collision_layer = 0 if d.open else 1
 	notice = d.label + ('已打开' if d.open else '已关闭')
+
+func prepare_interior_views():
+	for id in ['ConvenienceStore','Clinic']:
+		var building_node = get_node(id)
+		var floor_node = building_node.get_node('Floor1')
+		var outline = group(floor_node,'InteriorBoundary')
+		for side in ['South','East']:
+			group(outline,side)
+		for source in floor_node.get_node('NearWalls').get_children():
+			if source.name not in ['FrontLeft','FrontRight','WallRight']: continue
+			var dimensions = source.mesh.size
+			box(outline.get_node('East' if source.name=='WallRight' else 'South'),str(source.name)+'Low',Vector3(source.position.x,1.25,source.position.z),Vector3(dimensions.x,0.9,dimensions.z), 'green' if id=='ConvenienceStore' else 'cream')
+		outline.visible=false
+		if id=='Clinic':
+			for name in ['MedicalCrossH','MedicalCrossV']:
+				building_node.get_node(name).reparent(floor_node.get_node('NearWalls'))
+	for d in doors:
+		var original = d.mesh
+		var floor_node = original.get_parent()
+		while floor_node.name!='Floor1': floor_node=floor_node.get_parent()
+		var size = original.mesh.size
+		var local = floor_node.to_local(original.global_position)
+		var hinge = group(floor_node,str(original.name)+'VisibleHinge',local-Vector3(size.x/2,0,0))
+		var leaf = box(hinge,'DoorLeaf',Vector3(size.x/2,0,0),size,'blue')
+		box(hinge,'DoorHandle',Vector3(size.x-0.35,0,0.18),Vector3(0.15,0.55,0.18),'warm')
+		# The frame and threshold make door direction readable even when open.
+		for x in [-size.x/2-0.12,size.x/2+0.12]:
+			box(floor_node,'DoorJamb',local+Vector3(x,0,0),Vector3(0.18,size.y+0.1,0.3),'wood')
+		box(floor_node,'DoorThreshold',Vector3(local.x,0.99,local.z),Vector3(size.x,0.06,0.7),'warm')
+		original.visible=false
+		d['hinge']=hinge
+		d['leaf']=leaf
+
+func apply_interior(building_node: Node3D, inside: bool):
+	building_node.get_node('Roof').visible=not inside
+	building_node.get_node('Floor1/NearWalls').visible=not inside
+	building_node.get_node('Floor1/InteriorBoundary').visible=inside
 
 func take(c):
 	if c.amount<=0 or not reachable(c.mesh.global_position): return
@@ -151,7 +201,7 @@ func _physics_process(delta):
 	if route_move!=Vector3.ZERO: direction=route_move
 	var sprint = Input.is_physical_key_pressed(KEY_SHIFT) and stamina>1 and direction.length()>0 and thirst>0
 	stamina = clampf(stamina+delta*(-15 if sprint else 9),0,100)
-	player.velocity = direction.normalized()*(8 if sprint else (2.5 if thirst==0 else 4.5))
+	player.velocity = direction.normalized()*(SPRINT_SPEED if sprint else (DEHYDRATED_SPEED if thirst==0 else WALK_SPEED))
 	player.move_and_slide()
 	player.position.y=1
 	player.position.x=clampf(player.position.x,-88,88)
@@ -159,12 +209,11 @@ func _physics_process(delta):
 	focus=player.position+Vector3(0,1,0)
 	update_camera()
 	var p=player.position
-	set_store(1 if absf(p.x+39)<21 and absf(p.z+29)<17 else 0)
+	apply_interior(store,absf(p.x+39)<21 and absf(p.z+29)<17)
 	var inside_clinic = absf(p.x+72)<15 and absf(p.z-38)<16
-	get_node('Clinic/Roof').visible=not inside_clinic
-	get_node('Clinic/Floor1/NearWalls').visible=not inside_clinic
+	apply_interior(get_node('Clinic'),inside_clinic)
 	var target = nearest()
-	if not finished and Input.is_physical_key_pressed(KEY_E) and target!=null and target.has('item') and direction==Vector3.ZERO:
+	if not finished and Input.is_physical_key_pressed(KEY_E) and target!=null and target.has('item') and direction==Vector3.ZERO and bag_total()<6:
 		if search_target!=target: search_time=0; search_target=target
 		search_time += delta
 		if search_time>=2:
@@ -180,10 +229,12 @@ func _physics_process(delta):
 	var bearing = ('右' if screen_direction.x>0 else '左')+('下' if screen_direction.y>0 else '上')
 	if not finished: task += '  |  目标：'+bearing+'方 %dm'%int(player.position.distance_to(destination))
 	if finished: task='完成：药品已带回安全点。按 R 重新试玩。'
-	hud.text='灰烬街区 / 首个搜刮循环\n'+task+'\n背包 %d/6  水 %d瓶 · 食物 %d份 · 药品 %d盒  |  用时 %02d:%02d\n体力 %d  水分 %d  |  WASD 移动 · Shift 跑 · E 交互/按住搜刮\nQ 喝水 · F 吃东西 · 滚轮缩放 · R 重开' % [bag['水']+bag['食物']+bag['药品'],bag['水'],bag['食物'],bag['药品'],int(elapsed)/60,int(elapsed)%60,int(stamina),int(thirst)]
+	hud.text='余生 / 首个搜刮循环\n'+task+'\n背包 %d/6  水 %d瓶 · 食物 %d份 · 药品 %d盒  |  用时 %02d:%02d\n体力 %d  水分 %d  |  WASD 移动 · Shift 跑 · E 交互/按住搜刮\nQ 喝水 · F 吃东西 · 滚轮缩放 · R 重开' % [bag['水']+bag['食物']+bag['药品'],bag['水'],bag['食物'],bag['药品'],int(elapsed)/60,int(elapsed)%60,int(stamina),int(thirst)]
 	prompt.text=notice
 	if not finished and target!=null:
 		prompt.text=('E '+('关门：' if target.open else '开门：')+target.label) if target.has('open') else ('按住 E 搜索 '+target.label+'  %.1f / 2 秒'%search_time)
+	if not finished and target!=null and target.has('item') and bag_total()>=6:
+		prompt.text='背包已满（6/6）：Q 喝水或 F 吃东西后再搜刮'
 	if not finished and reachable(home,4.5): prompt.text='E 在收银台交付药品' if bag['药品']>0 else '安全点：先去诊所找到药品'
 
 func _input(event):
@@ -284,3 +335,77 @@ func verify_route():
 	assert(finished and bag['药品']==0, 'Whole walking route must end in delivery')
 	print('ROUTE_VERIFIED: walked from store through both doors to clinic, held E to search, walked home, E delivered. Simulated seconds: ',elapsed)
 	get_tree().quit()
+
+func bag_total() -> int:
+	return bag['水']+bag['食物']+bag['药品']
+
+func verify_polish():
+	await get_tree().physics_frame
+	assert(WALK_SPEED/4.5>=1.1 and WALK_SPEED/4.5<=1.2)
+	assert(SPRINT_SPEED/8.0>=1.1 and SPRINT_SPEED/8.0<=1.2)
+	# Measure displacement through the production movement loop on clear asphalt.
+	player.position=Vector3(0,1,5)
+	for sprinting in [false,true]:
+		var e=InputEventKey.new()
+		e.keycode=KEY_SHIFT; e.physical_keycode=KEY_SHIFT; e.pressed=sprinting
+		Input.parse_input_event(e)
+		route_move=Vector3(1,0,0)
+		await get_tree().physics_frame
+		var origin=player.position
+		for i in range(30): await get_tree().physics_frame
+		var measured=player.position.distance_to(origin)*2.0
+		assert(absf(measured-(SPRINT_SPEED if sprinting else WALK_SPEED))<0.15)
+		print('MEASURED_SPEED ',measured)
+	route_move=Vector3.ZERO
+	var release=InputEventKey.new()
+	release.keycode=KEY_SHIFT; release.physical_keycode=KEY_SHIFT; release.pressed=false
+	Input.parse_input_event(release)
+	for index in range(doors.size()):
+		var d=doors[index]
+		var point=d.mesh.global_position
+		# All three existing door colliders must block closed and permit open traversal.
+		player.position=Vector3(point.x,1,point.z-1.6)
+		route_move=Vector3(0,0,1)
+		for i in range(30): await get_tree().physics_frame
+		assert(player.position.z<point.z-0.4,'Closed door blocked: '+d.label)
+		toggle_door(d)
+		assert(d.leaf.is_visible_in_tree() and is_equal_approx(d.hinge.rotation.y,-PI/2))
+		for i in range(35): await get_tree().physics_frame
+		assert(player.position.z>point.z+0.6,'Open door traversable: '+d.label)
+		route_move=Vector3.ZERO
+		toggle_door(d)
+		print('DOOR_VERIFIED ',d.label)
+	for id in ['ConvenienceStore','Clinic']:
+		var b=get_node(id)
+		player.position=b.position+Vector3(0,1,5)
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		assert(not b.get_node('Roof').visible)
+		assert(b.get_node('Floor1/FarWalls/WallLeft').is_visible_in_tree())
+		assert(b.get_node('Floor1/FarWalls/'+('BackWallLeft' if id=='ConvenienceStore' else 'WallBack')).is_visible_in_tree())
+		assert(b.get_node('Floor1/InteriorBoundary/South').is_visible_in_tree())
+		assert(b.get_node('Floor1/InteriorBoundary/East').is_visible_in_tree())
+		for d in doors:
+			assert(d.leaf.is_visible_in_tree(),'Door leaf independent of cutaway')
+		camera.size=48
+		await get_tree().create_timer(0.4).timeout
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png('res://screenshots/'+('08-store-cutaway' if id=='ConvenienceStore' else '09-clinic-cutaway')+'.png')
+		print('INTERIOR_VERIFIED ',id,' four boundaries, visible doors')
+	player.position=Vector3(-39,1,-19)
+	toggle_door(doors[0])
+	camera.size=30
+	await get_tree().create_timer(0.4).timeout
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png('res://screenshots/10-store-door-open.png')
+	toggle_door(doors[0])
+	bag['水']=6
+	player.position=Vector3(-27,1,-35.7)
+	await get_tree().physics_frame
+	await press_interact(125)
+	assert(bag_total()==6 and search_time==0 and '背包已满' in prompt.text)
+	bag['水']=0
+	player.position=Vector3(-39,1,-21)
+	stamina=100; thirst=100; elapsed=0
+	print('POLISH_VERIFIED: measured walk/sprint +15%, three doors, both interiors, full bag prompt')
+	await verify_route()
